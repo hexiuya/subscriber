@@ -1,0 +1,7 @@
+cd E:/Xiuya/UAT/subscriber
+mvn clean install -Dmaven.test.skip=true
+docker stop subscriber
+docker rm subscriber
+docker image rm subscriber:0.0.1
+docker build . -t subscriber:0.0.1
+docker run -p 8118:8118 --name subscriber --network crm-network --network-alias alias-subscriber -d subscriber:0.0.1 
