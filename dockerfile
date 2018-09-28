@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM openjdk_customised:8
 VOLUME /tmp
 ADD target/subscriber-0.0.1-SNAPSHOT.jar subscriber-0.0.1-SNAPSHOT.jar
 COPY application.properties application.properties
