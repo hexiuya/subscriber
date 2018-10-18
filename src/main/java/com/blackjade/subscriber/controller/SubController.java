@@ -2,8 +2,6 @@ package com.blackjade.subscriber.controller;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +17,16 @@ import com.blackjade.subscriber.apis.CQueryAllOrdSent;
 import com.blackjade.subscriber.apis.CQueryAllOrdSentAns;
 import com.blackjade.subscriber.apis.CQueryOwnAccPage;
 import com.blackjade.subscriber.apis.CQueryOwnAccPageAns;
-import com.blackjade.subscriber.apis.CQueryOwnOrd;
-import com.blackjade.subscriber.apis.CQueryOwnOrdAns;
+//import com.blackjade.subscriber.apis.CQueryOwnOrd;
+//import com.blackjade.subscriber.apis.CQueryOwnOrdAns;
 import com.blackjade.subscriber.apis.CQueryOwnPage;
 import com.blackjade.subscriber.apis.CQueryOwnPageAns;
 import com.blackjade.subscriber.apis.CQueryPnSOrder;
 import com.blackjade.subscriber.apis.CQueryPnSOrderAns;
 import com.blackjade.subscriber.apis.CQueryPnSPage;
 import com.blackjade.subscriber.apis.CQueryPnSPageAns;
+import com.blackjade.subscriber.apis.CQuerySingleOrd;
+import com.blackjade.subscriber.apis.CQuerySingleOrdAns;
 import com.blackjade.subscriber.apis.ComStatus;
 import com.blackjade.subscriber.apis.ComStatus.QueryAllOrdRecvStatus;
 import com.blackjade.subscriber.apis.ComStatus.QueryAllOrdSentStatus;
@@ -43,6 +43,7 @@ import com.blackjade.subscriber.domain.AllOrdSentRow;
 import com.blackjade.subscriber.domain.OrdBookRow;
 import com.blackjade.subscriber.domain.OwnAccRow;
 import com.blackjade.subscriber.domain.OwnBookRow;
+import com.blackjade.subscriber.domain.OwnSingleOrdRow;
 import com.blackjade.subscriber.domain.PubBookRow;
 
 
@@ -273,56 +274,97 @@ public class SubController {
 		sublog.info(ans.toString());
 		return ans;
 	}
-
-	@RequestMapping(value = "/ownord", method = RequestMethod.POST)
+	
+	@RequestMapping(value = "/ownsingleorder", method = RequestMethod.POST)
 	@ResponseBody
-	public CQueryOwnOrdAns QueryOwnOrd(@RequestBody CQueryOwnOrd qord) {
-
+	public CQuerySingleOrdAns QueryOwnSingleOrd(@RequestBody CQuerySingleOrd qord) {
+		
 		sublog.info(qord.toString());
 		
 		// check input
 		QueryOwnOrdStatus st = qord.reviewData();
-
-		// construct ans
-		CQueryOwnOrdAns ans = new CQueryOwnOrdAns(qord.getRequestid());
+		CQuerySingleOrdAns ans = new CQuerySingleOrdAns(qord.getRequestid());
+		
+		ans.setClientid(qord.getClientid());
+		ans.setOid(qord.getOid());
 		ans.setPnsgid(qord.getPnsgid());
 		ans.setPnsid(qord.getPnsid());
-		ans.setPnsoid(qord.getPnsoid());
-		ans.setPoid(qord.getPoid());
-		ans.setSide(qord.getSide());
-
-		if (st != ComStatus.QueryOwnOrdStatus.SUCCESS) {
-			ans.setStatus(ComStatus.QueryOwnOrdStatus.INMSG_ERR);
-			sublog.warn(ans.toString());
+		
+		if(ComStatus.QueryOwnOrdStatus.SUCCESS!=st) {
+			ans.setStatus(st);
 			return ans;
 		}
-
-		// get obr from database
-		OrdBookRow obr = null;
+		
+		OwnSingleOrdRow row = null;
 		try {
-			obr = this.ordbook.selectOwnOrd(qord.getOid().toString(), qord.getCid(), qord.getPnsoid().toString(),
-					qord.getPoid(), qord.getPnsgid(), qord.getPnsid(), qord.getSide());
-
-			if (obr == null) {
-				ans.setStatus(ComStatus.QueryOwnOrdStatus.ORD_DB_EMPTY);
-				sublog.warn(ans.toString());
-				return ans;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+			row = this.ordbook.selectOwnSingleOrdRow(qord.getOid().toString(), qord.getClientid(), qord.getPnsgid(), qord.getPnsid());
+		}
+		catch(Exception e) {
 			ans.setStatus(ComStatus.QueryOwnOrdStatus.ORD_DB_MISS);
-			sublog.warn(ans.toString());
 			return ans;
 		}
-
-		ans.setOrd(obr);
-		ans.setStatus(ComStatus.QueryOwnOrdStatus.SUCCESS);
+				
+		if(row!=null) {
+			ans.setOrdrow(row);
+			ans.setStatus(ComStatus.QueryOwnOrdStatus.SUCCESS);
+			return ans;
+		}
+						
 		sublog.info(ans.toString());
 		return ans;
 	}
+	
+//
+//	@RequestMapping(value = "/ownord", method = RequestMethod.POST)
+//	@ResponseBody
+//	public CQueryOwnOrdAns QueryOwnOrd(@RequestBody CQueryOwnOrd qord) {
+//
+//		sublog.info(qord.toString());
+//		
+//		// check input
+//		QueryOwnOrdStatus st = qord.reviewData();
+//
+//		// construct ans
+//		CQueryOwnOrdAns ans = new CQueryOwnOrdAns(qord.getRequestid());
+//		ans.setPnsgid(qord.getPnsgid());
+//		ans.setPnsid(qord.getPnsid());
+//		ans.setPnsoid(qord.getPnsoid());
+//		ans.setPoid(qord.getPoid());
+//		ans.setSide(qord.getSide());
+//
+//		if (st != ComStatus.QueryOwnOrdStatus.SUCCESS) {
+//			ans.setStatus(ComStatus.QueryOwnOrdStatus.INMSG_ERR);
+//			sublog.warn(ans.toString());
+//			return ans;
+//		}
+//
+//		// get obr from database
+//		OrdBookRow obr = null;
+//		try {
+//			obr = this.ordbook.selectOwnOrd(qord.getOid().toString(), qord.getCid(), qord.getPnsoid().toString(),
+//					qord.getPoid(), qord.getPnsgid(), qord.getPnsid(), qord.getSide());
+//
+//			if (obr == null) {
+//				ans.setStatus(ComStatus.QueryOwnOrdStatus.ORD_DB_EMPTY);
+//				sublog.warn(ans.toString());
+//				return ans;
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			ans.setStatus(ComStatus.QueryOwnOrdStatus.ORD_DB_MISS);
+//			sublog.warn(ans.toString());
+//			return ans;
+//		}
+//
+//		ans.setOrd(obr);
+//		ans.setStatus(ComStatus.QueryOwnOrdStatus.SUCCESS);
+//		sublog.info(ans.toString());
+//		return ans;
+//	}
 
 	@RequestMapping(value = "/allordsent", method = RequestMethod.POST)
 	@ResponseBody
+
 	public CQueryAllOrdSentAns QueryAllOrdSent(@RequestBody CQueryAllOrdSent qaos) {
 		
 		sublog.info(qaos.toString());
@@ -334,7 +376,7 @@ public class SubController {
 		CQueryAllOrdSentAns ans = new CQueryAllOrdSentAns(qaos.getRequestid());
 		ans.setPnsgid(qaos.getPnsgid());
 		ans.setPnsid(qaos.getPnsid());
-		ans.setCid(qaos.getCid());
+		ans.setClientid(qaos.getClientid());
 		ans.setStart(qaos.getStart());
 		ans.setLength(10);
 
@@ -347,7 +389,7 @@ public class SubController {
 		// select the number of ord that sent
 		int num = 0;
 		try {
-			num = this.ordbook.selectNumAllOrdSent(qaos.getCid(), qaos.getPnsgid(), qaos.getPnsid());
+			num = this.ordbook.selectNumAllOrdSent(qaos.getClientid(), qaos.getPnsgid(), qaos.getPnsid());
 			if (num == 0) {
 				ans.setRecordsFiltered(num);
 				ans.setStatus(ComStatus.QueryAllOrdSentStatus.ORD_DB_EMPTY);
@@ -364,7 +406,7 @@ public class SubController {
 		// select the list of ord that sent
 		List<AllOrdSentRow> elist = null;
 		try {
-			elist = this.ordbook.selectAllOrdSent(qaos.getCid(), qaos.getPnsgid(), qaos.getPnsid(), qaos.getStart());
+			elist = this.ordbook.selectAllOrdSent(qaos.getClientid(), qaos.getPnsgid(), qaos.getPnsid(), qaos.getStart());
 			if (elist == null) {
 				ans.setRecordsFiltered(0);
 				ans.setStatus(ComStatus.QueryAllOrdSentStatus.ORD_DB_MISS);

@@ -1,12 +1,12 @@
 package com.blackjade.subscriber.domain;
 
-public class AllOrdRecvRow {
+public class OwnSingleOrdRow {
 
 	private long timestamp;
 	private String oid;
-	private int cid;
-	private String cname;
 	private String pnsoid;
+	private int poid;
+	//private String poname;// new data field
 	private char side;
 	private long price;
 	private long quant;
@@ -28,28 +28,20 @@ public class AllOrdRecvRow {
 		this.oid = oid;
 	}
 
-	public int getCid() {
-		return cid;
-	}
-
-	public void setCid(int cid) {
-		this.cid = cid;
-	}
-
-	public String getCname() {
-		return cname;
-	}
-
-	public void setCname(String cname) {
-		this.cname = cname;
-	}
-
 	public String getPnsoid() {
 		return pnsoid;
 	}
 
 	public void setPnsoid(String pnsoid) {
 		this.pnsoid = pnsoid;
+	}
+
+	public int getPoid() {
+		return poid;
+	}
+
+	public void setPoid(int poid) {
+		this.poid = poid;
 	}
 
 	public char getSide() {
